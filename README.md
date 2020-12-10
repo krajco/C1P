@@ -47,6 +47,20 @@ int e0/0
   ip router isis
 ```
 ## RIPv2
+Rip configure
+```
+router rip
+  version 2
+  no auto-summary
+  network 192.168.1.1
+```
+
+Propagacia default route
+```
+router rip
+  default-information originate
+```
+
 ```
 inte e0/0
   ip rip authentication mode md5
@@ -54,8 +68,20 @@ inte e0/0
 ```
 
 ## EIGRP
-Vytvirenie routrovania v name mode
+```
+router eigrp C1P
+  address-family ipv4 unicast autonomous-system 1
+  af-interface default
+    shutdown
+    exit
+  address-family ipv6 unicast autonomous-system 1
+  af-interface default
+    shutdown
+    exit
+```
 
+
+Vytvorenie routrovania v name mode
 Aplikácia autentizácie
 ```
 en
