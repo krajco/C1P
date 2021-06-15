@@ -1,144 +1,42 @@
-### Initializing
-```
-enable
-configure terminal
-no ip domain-lookup
-ipv6 unicast-routing
-```
-### Keychain
-```
-key chain c1p
- key 1
-  key-string FIT
-  cryptographic-algorithm md5
-end
-```
 
-### SSH
-```
-conf t
-username C1P password C1P
-ip ssh version 2
-crypto key generate rsa label ssh modulus 1024
-  line vty 0 4
-  login local
-  transport input ssh
-  end
-```
+define command{
 
-```
-ssh -l C1P 10.1.35.1
-```
+    command_name    check_magnetic_status
+    command_line    $USER1$/check_oid.py -H $HOSTADDRESS$ -o $ARG1$ -c $ARG2$ -im Closed! -wm 'Warning doors are opened (s)' -cm Closed -ec 300 -gw 60
+}
 
-### IS-IS
-Convertuje sa IP addresa loopbacku, a taktiež musí byť pridaný interface loopbacku do IS IS.
-```
-conf t
-router isis
-  net 49.0001.<convertovana ip>.00
-```
-```
-int e0/0
-  no sh
-  ip addr 192.168.1.1 255.255.255.0
-  ipv6 enable
-  ipv6 address fc:0:1::1/64
-  clns router isis
-  ip router isis
-```
-## RIPv2
-Rip configure
-```
-router rip
-  version 2
-  no auto-summary
-  network 192.168.1.1
-```
+define command{
 
-Propagacia default route
-```
-router rip
-  default-information originate
-```
+    command_name    check_sensor_battery
+    command_line    $USER1$/check_oid.py -H $HOSTADDRESS$ -o $ARG1$ -c $ARG2$ -im 'Battery OK' -wm 'Battery is low' -cm 'Battery is verry low' -lw 30 -lc 15
+}
 
-```
-inte e0/0
-  ip rip authentication mode md5
-  ip rip authentication key-chain C1P
-```
+define command{
 
-## EIGRP
-```
-router eigrp C1P
-  address-family ipv4 unicast autonomous-system 1
-  af-interface default
-    shutdown
-    exit
-  address-family ipv6 unicast autonomous-system 1
-  af-interface default
-    shutdown
-    exit
-```
+    command_name    check_sensor_motion
+    command_line    $USER1$/check_oid.py -H $HOSTADDRESS$ -o $ARG1$ -c $ARG2$ -im 'No motion' -wm 'Motion detected before(s)' -lw 1800
+}
 
+define command{
 
-Vytvorenie routrovania v name mode
-Aplikácia autentizácie
-```
-en
-conf t
-router eigrp C1P
-  address-family ipv6 unicast autonomous-system 1
-    af-interface e0/0
-    authentication mode md5
-    authentication key-chain C1P
-    exit
-  exit
-exit
-```
+    command_name    check_shp6_rssi
+    command_line    $USER1$/check_oid.py -H $HOSTADDRESS$ -o $ARG1$ -c $ARG2$ -im 'Signal OK' -wm 'Signal is low' -cm 'Signal is very low' -lw 50 -lc 25
+}
 
-## OSPF
-Key chain authorizácia
-```
-router ospf 1
-  area 0 authentication
-```
-```
-int e0/0
-ip ospf authentication key-chain C1P
-```
+define command{
 
-## BGP
-```
-router bgp 65100
-  neighbor 192.168.10.10 remote-as 65200
-  neighbor 192.168.10.10 password CiscoJeNaj
-  address-family ipv4 unicast
-    neighbor 192.168.10.10 activate
-    exit
- ```
- 
- Agregácia 
+    command_name    check_shp6_uptime
+    command_line    $USER1$/check_oid.py -H $HOSTADDRESS$ -o $ARG1$ -c $ARG2$ -im 'Uptime is OK' -wm 'Uptime is high' -cm 'Uptime is critical' -gw 8640000 -gc 12960000
+}
 
- ```
-router bgp 65100
-  address-family ipv4 unicast
-  aggregate-address 192.168.0.0 255.255.255.0
-  exit
- ```
- 
- Propagácia suseda ako default routu
- ```
-router bgp 65100
-  address-family ipv4 unicast
-  neighbor 192.168.1.1 default-originate
-```
-iBGP peer group, bez predchadzajuceho peeringu.
- ```
- router bgp 65100
-    neighbor iBGP-PeerGrp peer-group
-    neighbor iBGP-PeerGrp remote-as 65100
-    neighbor iBGP-PeerGrp update-source Loopback1
-    neighbor 192.168.1.1 peer-group iBGP-PeerGrp
-  ```
+define command{
 
+    command_name    check_shp6_power
+    command_line    $USER1$/check_oid.py -H $HOSTADDRESS$ -o $ARG1$ -c $ARG2$ -im 'Voltage is OK' -wm 'Voltage is higher' -cm 'Voltage is critical' -gw 240 -gc 250
+}
 
+define command{
+
+    command_name    check_air_temperature
+    command_line    $USER1$/check_oid.py -H $HOSTADDRESS$ -o $ARG1$ -c $ARG2$ -im 'Temperature is OK' -wm 'Temperature is higher' -cm 'Temperature is critical' -gw 26 -gc 30
+}
